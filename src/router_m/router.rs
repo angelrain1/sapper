@@ -9,7 +9,7 @@ use app::Result;
 use app::Error;
 use app::PathParams;
 use app::Key;
-use hyper::method::Method;
+use hyper::Method;
 
 use recognizer::Router as Recognizer;
 use recognizer::{Match, Params};
@@ -95,14 +95,14 @@ impl Router {
     //     )
     // }
 
-    pub fn handle_method(&self, req: &mut SapperRequest, path: &str) -> Option<Result<SapperResponse>> {
-        if let Some(matched) = self.recognize(req.method(), path) {
+    pub fn handle_method(&self, req: &mut SapperRequest) -> Option<Result<SapperResponse>> {
+        if let Some(matched) = self.recognize(req.method(), req.path()) {
             req.ext_mut().insert::<PathParams>(matched.params);
             Some(matched.handler.handle(req))
         } else { 
             // panic!("router not matched!");
             // self.redirect_slash(req).and_then(|redirect| Some(Err(redirect)))
-            Some(Err(Error::NotFound(path.to_owned()))) 
+            Some(Err(Error::NotFound(req.path().to_owned())))
         }
     }
 }

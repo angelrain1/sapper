@@ -6,6 +6,9 @@ extern crate log;
 #[macro_use]
 extern crate lazy_static;
 extern crate hyper;
+extern crate futures;
+extern crate tokio_core;
+extern crate num_cpus;
 extern crate typemap;
 extern crate conduit_mime_types as mime_types;
 

@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use std::collections::HashMap;
-use hyper::method::Method;
+use hyper::Method;
 
 use handler::SapperHandler;
 
@@ -62,7 +62,7 @@ impl SapperRouter {
         self.route(Method::Options, glob, handler)
     }
     
-    pub fn into_router(&self) -> &InnerRouter {
+    pub fn as_inner(&self) -> &InnerRouter {
         &self.router
     }
     

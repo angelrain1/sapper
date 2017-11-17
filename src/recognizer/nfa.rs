@@ -2,7 +2,8 @@ use std::collections::HashSet;
 use std::u64;
 use self::CharacterClass::{Ascii, ValidChars, InvalidChars};
 
-#[cfg(test)] use std::collections::BTreeSet;
+#[cfg(test)]
+use std::collections::BTreeSet;
 
 #[derive(PartialEq, Eq, Clone)]
 pub struct CharSet {
@@ -13,7 +14,7 @@ pub struct CharSet {
 
 impl CharSet {
     pub fn new() -> CharSet {
-        CharSet{ low_mask: 0, high_mask: 0, non_ascii: HashSet::new() }
+        CharSet { low_mask: 0, high_mask: 0, non_ascii: HashSet::new() }
     }
 
     pub fn insert(&mut self, char: char) {
@@ -131,7 +132,7 @@ struct Thread {
 
 impl Thread {
     pub fn new() -> Thread {
-        Thread{ state: 0, captures: Vec::new(), capture_begin: None }
+        Thread { state: 0, captures: Vec::new(), capture_begin: None }
     }
 
     #[inline]
@@ -170,8 +171,8 @@ impl<T> PartialEq for State<T> {
 impl<T> State<T> {
     pub fn new(index: usize, chars: CharacterClass) -> State<T> {
         State {
-            index: index,
-            chars: chars,
+            index,
+            chars,
             next_states: Vec::new(),
             acceptance: false,
             start_capture: false,
@@ -188,7 +189,7 @@ pub struct Match<'a> {
 
 impl<'a> Match<'a> {
     pub fn new<'b>(state: usize, captures: Vec<&'b str>) -> Match<'b> {
-        Match{ state: state, captures: captures }
+        Match { state, captures }
     }
 }
 
@@ -215,44 +216,44 @@ impl<T> NFA<T> {
                              -> Result<Match<'a>, String>
         where I: Ord, F: FnMut(usize) -> I
     {
-            let mut threads = vec![Thread::new()];
+        let mut threads = vec![Thread::new()];
 
-            for (i, char) in string.chars().enumerate() {
-                let next_threads = self.process_char(threads, char, i);
+        for (i, char) in string.chars().enumerate() {
+            let next_threads = self.process_char(threads, char, i);
 
-                if next_threads.is_empty() {
-                    return Err(format!("Couldn't process {}", string));
-                }
-
-                threads = next_threads;
+            if next_threads.is_empty() {
+                return Err(format!("Couldn't process {}", string));
             }
 
-            let returned = threads.into_iter().filter(|thread| {
-                self.get(thread.state).acceptance
-            });
+            threads = next_threads;
+        }
 
-            let thread = returned.fold(None, |prev, y| {
-                let y_v = ord(y.state);
-                match prev {
-                    None => Some((y_v, y)),
-                    Some((x_v, x)) => {
-                        if x_v < y_v {Some((y_v, y))} else {Some((x_v, x))}
-                    }
+        let returned = threads.into_iter().filter(|thread| {
+            self.get(thread.state).acceptance
+        });
+
+        let thread = returned.fold(None, |prev, y| {
+            let y_v = ord(y.state);
+            match prev {
+                None => Some((y_v, y)),
+                Some((x_v, x)) => {
+                    if x_v < y_v { Some((y_v, y)) } else { Some((x_v, x)) }
                 }
-            }).map(|p| p.1);
+            }
+        }).map(|p| p.1);
 
-            match thread {
-                None => Err("The string was exhausted before reaching an \
+        match thread {
+            None => Err("The string was exhausted before reaching an \
                              acceptance state".to_string()),
-                Some(mut thread) => {
-                    if thread.capture_begin.is_some() {
-                        thread.end_capture(string.len());
-                    }
-                    let state = self.get(thread.state);
-                    Ok(Match::new(state.index, thread.extract(string)))
+            Some(mut thread) => {
+                if thread.capture_begin.is_some() {
+                    thread.end_capture(string.len());
                 }
+                let state = self.get(thread.state);
+                Ok(Match::new(state.index, thread.extract(string)))
             }
         }
+    }
 
     #[inline]
     fn process_char<'a>(&self, threads: Vec<Thread>,
@@ -289,7 +290,6 @@ impl<T> NFA<T> {
                     returned.push(thread);
                 }
             }
-
         }
 
         returned
@@ -375,8 +375,8 @@ fn capture<T>(nfa: &NFA<T>, thread: &mut Thread, current_state: usize,
 
     if thread.capture_begin != None && nfa.end_capture[current_state] &&
         next_state > current_state {
-            thread.end_capture(pos);
-        }
+        thread.end_capture(pos);
+    }
 }
 
 #[test]
@@ -391,7 +391,7 @@ fn basic_test() {
 
     let m = nfa.process("hello", |a| a);
 
-    assert!(m.unwrap().state == e, "You didn't get the right final state");
+    assert_eq!(m.unwrap().state, e, "You didn't get the right final state");
 }
 
 #[test]
@@ -409,7 +409,7 @@ fn multiple_solutions() {
 
     let m = nfa.process("new", |a| a);
 
-    assert!(m.unwrap().state == c2, "The two states were not found");
+    assert_eq!(m.unwrap().state, c2, "The two states were not found");
 }
 
 #[test]
@@ -433,8 +433,8 @@ fn multiple_paths() {
     let thom = nfa.process("thom", |a| a);
     let nope = nfa.process("nope", |a| a);
 
-    assert!(thomas.unwrap().state == f1, "thomas was parsed correctly");
-    assert!(tom.unwrap().state == c2, "tom was parsed correctly");
+    assert_eq!(thomas.unwrap().state, f1, "thomas was parsed correctly");
+    assert_eq!(tom.unwrap().state, c2, "tom was parsed correctly");
     assert!(thom.is_err(), "thom didn't reach an acceptance state");
     assert!(nope.is_err(), "nope wasn't parsed");
 }
@@ -457,20 +457,20 @@ fn repetitions() {
     let new_post = nfa.process("posts/new", |a| a);
     let invalid = nfa.process("posts/", |a| a);
 
-    assert!(post.unwrap().state == g, "posts/1 was parsed");
-    assert!(new_post.unwrap().state == g, "posts/new was parsed");
+    assert_eq!(post.unwrap().state, g, "posts/1 was parsed");
+    assert_eq!(new_post.unwrap().state, g, "posts/new was parsed");
     assert!(invalid.is_err(), "posts/ was invalid");
 }
 
 #[test]
 fn repetitions_with_ambiguous() {
     let mut nfa = NFA::<()>::new();
-    let a  = nfa.put(0, CharacterClass::valid("p"));   // p
-    let b  = nfa.put(a, CharacterClass::valid("o"));   // po
-    let c  = nfa.put(b, CharacterClass::valid("s"));   // pos
-    let d  = nfa.put(c, CharacterClass::valid("t"));   // post
-    let e  = nfa.put(d, CharacterClass::valid("s"));   // posts
-    let f  = nfa.put(e, CharacterClass::valid("/"));   // posts/
+    let a = nfa.put(0, CharacterClass::valid("p"));   // p
+    let b = nfa.put(a, CharacterClass::valid("o"));   // po
+    let c = nfa.put(b, CharacterClass::valid("s"));   // pos
+    let d = nfa.put(c, CharacterClass::valid("t"));   // post
+    let e = nfa.put(d, CharacterClass::valid("s"));   // posts
+    let f = nfa.put(e, CharacterClass::valid("/"));   // posts/
     let g1 = nfa.put(f, CharacterClass::invalid("/")); // posts/[^/]
     let g2 = nfa.put(f, CharacterClass::valid("n"));   // posts/n
     let h2 = nfa.put(g2, CharacterClass::valid("e"));  // posts/ne
@@ -485,8 +485,8 @@ fn repetitions_with_ambiguous() {
     let ambiguous = nfa.process("posts/new", |a| a);
     let invalid = nfa.process("posts/", |a| a);
 
-    assert!(post.unwrap().state == g1, "posts/1 was parsed");
-    assert!(ambiguous.unwrap().state == i2, "posts/new was ambiguous");
+    assert_eq!(post.unwrap().state, g1, "posts/1 was parsed");
+    assert_eq!(ambiguous.unwrap().state, i2, "posts/new was ambiguous");
     assert!(invalid.is_err(), "posts/ was invalid");
 }
 

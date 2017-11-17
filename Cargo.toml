@@ -10,11 +10,13 @@ documentation = "https://docs.rs/sapper"
 homepage = "https://github.com/sappworks/sapper"
 
 [dependencies]
-hyper = "0.10.10"
+hyper = "0.11"
+futures = "0.1"
+tokio-core = "0.1"
 log = "0.3.7"
 env_logger = "0.4.2"
 typemap = "0.3.3"
 conduit-mime-types = "0.7.3"
 lazy_static = "0.2.8"
-
+num_cpus = "1.0"
 
